@@ -8,9 +8,6 @@ import {
   View, 
   TextInput, 
   Text,
-  TouchableOpacity,
-  Modal,
-  FlatList
  } from "react-native";
 import { useFonts } from "expo-font";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -62,6 +59,7 @@ function ToDoInput(props) {
   const [enteredToDoText, setEnteredToDoText] = useState("");
   const [enteredMoney, setEnteredMoney] = useState("");
   const [selectedRecipient, setSelectedRecipient] = useState("");
+  const [totalMoney, setTotalMoney]=useState(0);
 
   const [fontsLoaded] = useFonts({
     'CormorantGaramond-Light': require('../assets/fonts/CormorantGaramond-Light.ttf')
@@ -73,6 +71,8 @@ function ToDoInput(props) {
 
   function moneyInputHandler(enteredText) {
     setEnteredMoney(enteredText);
+    const money=parseInt(enteredText)+parseInt(totalMoney);
+    setTotalMoney(money);
   }
 
 
@@ -81,6 +81,11 @@ function ToDoInput(props) {
     setEnteredToDoText('');
     setEnteredMoney('');
   }
+
+  useEffect(() => {
+    // Update local total money whenever the parent component updates it
+    setTotalMoney(props.totalMoney);
+  }, [props.totalMoney]);
 
   if (!fontsLoaded) {
     return null; // Return null or a loading indicator while fonts are loading

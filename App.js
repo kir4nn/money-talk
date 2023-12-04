@@ -25,7 +25,7 @@ export default function App() {
 
   const [splashIsVisible, setSplashIsVisible] = useState(true);
   const [todoTexts, setToDoTexts] = useState([]);
-
+  const [totalMoney, setTotalMoney] = useState(0);
   
   useEffect(() => {
     const loadResources = async () => {
@@ -47,7 +47,14 @@ export default function App() {
       try {
         const storedTodos = await AsyncStorage.getItem('todos');
         if (storedTodos) {
-          setToDoTexts(JSON.parse(storedTodos));
+          const parsedTodos = JSON.parse(storedTodos);
+          setToDoTexts(parsedTodos);
+
+          const initialTotal = parsedTodos.reduce((total, todo) => {
+            const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+            return total + money;
+          }, 0);
+          setTotalMoney(initialTotal);
         }
       } catch (error) {
         console.error('Error loading todos:', error);
@@ -66,6 +73,7 @@ export default function App() {
   };
   function addToDoHandler(enteredToDoText, enteredMoney, enteredRecepient) {
     if (enteredToDoText && enteredMoney && enteredRecepient !== '') {
+      const money = parseInt(enteredMoney, 10);
       const newToDo = {
         text: `₹${enteredMoney}: ${enteredRecepient}, ${enteredToDoText}`,
         id: Math.random().toString(),
@@ -73,14 +81,26 @@ export default function App() {
 
       setToDoTexts((currentToDoTexts) => [...currentToDoTexts, newToDo]);
       saveTodos([...todoTexts, newToDo]);
+      setTotalMoney((currentTotal) => currentTotal + money);
     }
   }
 
   function deleteToDoHandler(id) {
-    setToDoTexts(currentToDoTexts =>
-       currentToDoTexts.filter(todo => todo.id !== id)
-      );
-      saveTodos(todoTexts.filter((todo) => todo.id !== id));
+    setToDoTexts((currentToDoTexts) => {
+      const updatedTodos = currentToDoTexts.filter((todo) => todo.id !== id);
+      saveTodos(updatedTodos);
+  
+      const newTotal =
+        updatedTodos.length === 0
+          ? 0
+          : updatedTodos.reduce((total, todo) => {
+              const todoMoney = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+              return total + todoMoney;
+            }, 0);
+      setTotalMoney(newTotal);
+  
+      return updatedTodos;
+    });
   }
 
   const day = moment().format('dddd').toLowerCase();
@@ -111,6 +131,13 @@ export default function App() {
             />
           )}
         />
+        <View style={{borderBottomWidth:1, borderBottomColor:'#ffffff', marginHorizontal:40}}></View>
+        <View style={{marginHorizontal:40, marginBottom:20}}>
+        <Text style={styles.totalColor}>
+          Total: <Text style={styles.totalValueColor}>{totalMoney}</Text>
+        </Text>
+        
+        </View>
       </View>
     </View>
   );
@@ -142,6 +169,20 @@ const styles = StyleSheet.create({
     borderBottomColor: '#cccccc',
     fontSize:20,
     fontFamily:'CormorantGaramond-Bold'
+  },
+  totalColor: {
+    color: "white",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#cccccc',
+    fontSize:20,
+    fontFamily:'CormorantGaramond-Bold',
+    paddingLeft:75
+  },
+  totalValueColor: {
+    color: "white",
+    fontSize:25,
+    fontFamily:'CormorantGaramond-Bold',
   },
   pressedItem: {
     opacity: 0.5
