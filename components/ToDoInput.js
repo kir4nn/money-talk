@@ -14,9 +14,8 @@ import { Dropdown } from 'react-native-element-dropdown';
 
 const data = [
   { label: 'dad', value: 'dad' },
-  { label: 'mom', value: 'mom' },
   { label: 'bro', value: 'bro' },
-  { label: 'sis', value: 'sis' },
+  { label: 'friend', value: 'friend' },
   { label: 'others', value: 'others' },
 ];
 
@@ -65,6 +64,9 @@ function ToDoInput(props) {
     'CormorantGaramond-Light': require('../assets/fonts/CormorantGaramond-Light.ttf')
   });
 
+
+
+
   function todoInputHandler(enteredText) {
     setEnteredToDoText(enteredText);
   }
@@ -90,7 +92,6 @@ function ToDoInput(props) {
   if (!fontsLoaded) {
     return null; // Return null or a loading indicator while fonts are loading
   }
-
   return (
     <View style={styles.inputContainer}>
       <View style={styles.inputsContainer}>
