@@ -4,7 +4,7 @@ import {
   Text,
   View,
   FlatList,
-  ImageBackground,
+  Alert
 } from 'react-native';
 import moment from 'moment';
 import { useFonts } from "expo-font";
@@ -48,9 +48,9 @@ function SpentMoneyUI({ onPressBack }){
 
     loadResources();
   }, [fontsLoaded]);
+  
 
   useEffect(() => {
-    // Load stored todos from AsyncStorage when the component mounts
     const loadTodos = async () => {
       try {
         const storedTodos = await AsyncStorage.getItem('spentmoni');
@@ -79,19 +79,51 @@ function SpentMoneyUI({ onPressBack }){
       console.error('Error saving spentmoni:', error);
     }
   };
+  
+  const [lastResetDate, setLastResetDate] = useState(moment().format("YYYY-MM-DD"));
+
+
   function addToDoHandler(enteredToDoText, enteredMoney, enteredRecepient) {
+    
+    if(isNaN(enteredMoney)||enteredMoney<=0||enteredMoney.startsWith(".")||enteredMoney.startsWith(",")){
+      Alert.alert(
+          'invalid number', 
+          'money is null or has special char',
+          [{text:'sorry', style:'destructive'}]
+      )
+      return;
+    }
+
     if (enteredMoney && enteredRecepient !== '') {
       const money = parseInt(enteredMoney, 10);
+      const currentDate = moment().format("MMM D");
+      
+      if (!moment().isSame(moment(lastResetDate), 'month')) {
+        setTotalMoney(0);
+        setLastResetDate(moment().format("YYYY-MM-DD"));
+      }
+
       const newToDo = {
         text: `₹${enteredMoney}: ${enteredRecepient}, ${enteredToDoText}`,
         id: Math.random().toString(),
+        date: currentDate,
       };
 
-      setToDoTexts((currentToDoTexts) => [...currentToDoTexts, newToDo]);
-      saveTodos([...todoTexts, newToDo]);
+      setToDoTexts((currentToDoTexts) => [newToDo, ...currentToDoTexts]);
+      saveTodos([newToDo, ...todoTexts]);
       setTotalMoney((currentTotal) => currentTotal + money);
     }
   }
+
+  useEffect(() => {
+    const resetMonth = () => {
+      setLastResetDate(moment().format("YYYY-MM-DD"));
+    };
+
+    const interval = setInterval(resetMonth, 86400000); // Check every day
+
+    return () => clearInterval(interval);
+  }, []);
 
   function deleteToDoHandler(id) {
     setToDoTexts((currentToDoTexts) => {
@@ -135,6 +167,7 @@ function SpentMoneyUI({ onPressBack }){
             <SpentItem
               text={itemData.item.text}
               id={itemData.item.id}
+              date={itemData.item.date} 
               onDeleteItem={deleteToDoHandler}
             />
           )}
@@ -146,7 +179,7 @@ function SpentMoneyUI({ onPressBack }){
         <View style={{borderBottomWidth:1, borderBottomColor:'#ffffff', marginHorizontal:40}}></View>
         <View style={{marginHorizontal:40, marginBottom:20}}>
         <Text style={styles.totalColor}>
-          Total: <Text style={styles.totalValueColor}>{totalMoney}</Text>
+          Total(Month): <Text style={styles.totalValueColor}>{totalMoney}</Text>
         </Text>
         </View>
       </View>
@@ -191,7 +224,7 @@ const styles = StyleSheet.create({
       borderBottomColor: '#cccccc',
       fontSize:20,
       fontFamily:'CormorantGaramond-Bold',
-      paddingLeft:75
+      paddingLeft:45
     },
     totalValueColor: {
       color: "white",

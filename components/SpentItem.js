@@ -4,8 +4,10 @@ import {
     Text,
     Pressable
   } from "react-native";
-  
-  function SpentItem(props){
+import moment from "moment";
+
+function SpentItem(props){
+
     return(
         <View style={styles.todoListTexts}>
           <Pressable android_ripple={{color:'#9aa0a6'}}
@@ -14,11 +16,13 @@ import {
             <Text style={styles.todoText}>
                 {props.text}
             </Text>
+            <Text style={styles.dateText}>{props.date}</Text>
           </Pressable>
+          
         </View>
       
     );
-  }
+}
   
   export default SpentItem;
   
@@ -33,11 +37,17 @@ import {
   },
   todoText:{
     color:"white",
-    padding:10,
+    padding:5,
     textAlign:'center',
     fontSize:20
   },
   pressedItem:{
     opacity:0.5
-  }
+  },
+  dateText: {
+    color: "#9aa0a6",
+    textAlign: "right",
+    paddingRight: 10,
+    paddingBottom: 2,
+  },
   });

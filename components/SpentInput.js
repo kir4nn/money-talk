@@ -65,9 +65,6 @@ import React, {
       'CormorantGaramond-Light': require('../assets/fonts/CormorantGaramond-Light.ttf')
     });
   
-  
-  
-  
     function todoInputHandler(enteredText) {
       setEnteredToDoText(enteredText);
     }

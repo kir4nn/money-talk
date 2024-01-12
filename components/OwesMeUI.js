@@ -4,7 +4,7 @@ import {
   Text,
   View,
   FlatList,
-  ImageBackground,
+  Alert
 } from 'react-native';
 import moment from 'moment';
 import { useFonts } from "expo-font";
@@ -77,16 +77,38 @@ function OwesMeUI({ onPressBack }){
       console.error('Error saving todos:', error);
     }
   };
+  function isNullOrEmpty(str) {
+    if(str === null || str.trim() === '')
+      return true;
+  }
   function addToDoHandler(enteredToDoText, enteredMoney, enteredRecepient) {
+    if(isNaN(enteredMoney)||enteredMoney<=0||enteredMoney.startsWith(".")||enteredMoney.startsWith(",")){
+      Alert.alert(
+          'invalid number', 
+          'money is null or has special char',
+          [{text:'sorry', style:'destructive'}]
+      )
+      return;
+    }
+    if(isNaN(enteredToDoText)||isNullOrEmpty(enteredToDoText)){
+      Alert.alert(
+          'no description', 
+          'please add a description',
+          [{text:'okay', style:'destructive'}]
+      )
+      return;
+    }
     if (enteredToDoText && enteredMoney && enteredRecepient !== '') {
       const money = parseInt(enteredMoney, 10);
+      const currentDate = moment().format("MMM D");
       const newToDo = {
         text: `₹${enteredMoney}: ${enteredRecepient}, ${enteredToDoText}`,
         id: Math.random().toString(),
+        date: currentDate,
       };
 
-      setToDoTexts((currentToDoTexts) => [...currentToDoTexts, newToDo]);
-      saveTodos([...todoTexts, newToDo]);
+      setToDoTexts((currentToDoTexts) => [newToDo, ...currentToDoTexts]);
+      saveTodos([newToDo, ...todoTexts]);
       setTotalMoney((currentTotal) => currentTotal + money);
     }
   }
@@ -133,6 +155,7 @@ function OwesMeUI({ onPressBack }){
             <ToDoItem
               text={itemData.item.text}
               id={itemData.item.id}
+              date={itemData.item.date} 
               onDeleteItem={deleteToDoHandler}
             />
           )}

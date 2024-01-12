@@ -49,7 +49,8 @@ export default function App() {
     <View style={styles.rootScreen}>
       <StatusBar backgroundColor='#ffff'/>
       <SafeAreaView style={styles.rootScreen}>
-        {screen}</SafeAreaView>
+        {screen}
+      </SafeAreaView>
     </View>
   );
 }
@@ -57,7 +58,7 @@ export default function App() {
 const styles = StyleSheet.create({
   rootScreen:{
     flex:1,
-    flexDirection:'row',
     backgroundColor:'black',
-  }
+    
+  },
 });

@@ -4,19 +4,8 @@ import {
     Text,
     StyleSheet
 } from "react-native";
-import React, { 
-    useState,
-    useEffect
-  } from "react";
-import { useFonts } from "expo-font";
 
 function PrimaryButton({children, onPress}){
-    const [fontsLoaded] = useFonts({
-        'CormorantGaramond-Bold': require('../assets/fonts/CormorantGaramond-Bold.ttf')
-      });
-
-    if(!fontsLoaded)
-      return null;
 
     return(
         <View style={styles.buttonView}>
@@ -38,22 +27,22 @@ const styles=StyleSheet.create({
         overflow:'hidden',
         backgroundColor:'#202124',
         borderRadius: 28,
-        width:'20%',
         margin:5,
         elevation:2,
-        flex:1,
+        marginVertical:20
       },
       pressableView:{
-
       },
     buttonText:{
-        fontFamily:'CormorantGaramond-Bold',
         color:'#ffffff', 
         fontWeight:'bold',
-        paddingVertical: 16,
-        paddingHorizontal: 32,
         textAlign:'center',
         fontSize:20,
+        padding:10,
+        alignContent:'center',
+        alignItems:'center',
+        marginHorizontal:50,
+        marginVertical:10,
       },
       pressed:{
         opacity:0.75,

@@ -4,6 +4,7 @@ import {
   Text,
   Pressable
 } from "react-native";
+import moment from "moment";
 
 function ToDoItem(props){
   return(
@@ -14,6 +15,7 @@ function ToDoItem(props){
           <Text style={styles.todoText}>
               {props.text}
           </Text>
+          <Text style={styles.dateText}>{props.date}</Text>
         </Pressable>
       </View>
     
@@ -33,11 +35,17 @@ todoListTexts:{
 },
 todoText:{
   color:"white",
-  padding:10,
+  padding:5,
   textAlign:'center',
   fontSize:20
 },
 pressedItem:{
   opacity:0.5
-}
+},
+dateText: {
+  color: "#9aa0a6",
+  textAlign: "right",
+  paddingRight: 10,
+  paddingBottom: 2,
+},
 });
