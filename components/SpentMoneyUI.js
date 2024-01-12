@@ -49,28 +49,50 @@ function SpentMoneyUI({ onPressBack }){
     loadResources();
   }, [fontsLoaded]);
   
+  const [lastResetDate, setLastResetDate] = useState('');
 
-  useEffect(() => {
-    const loadTodos = async () => {
-      try {
-        const storedTodos = await AsyncStorage.getItem('spentmoni');
-        if (storedTodos) {
-          const parsedTodos = JSON.parse(storedTodos);
-          setToDoTexts(parsedTodos);
+useEffect(() => {
+  const loadTodos = async () => {
+    try {
+      const storedTodos = await AsyncStorage.getItem('spentmoni');
+      if (storedTodos) {
+        const parsedTodos = JSON.parse(storedTodos);
+        setToDoTexts(parsedTodos);
 
-          const initialTotal = parsedTodos.reduce((total, todo) => {
-            const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
-            return total + money;
-          }, 0);
-          setTotalMoney(initialTotal);
+        const initialTotal = parsedTodos.reduce((total, todo) => {
+          const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+          return total + money;
+        }, 0);
+        setTotalMoney(initialTotal);
+
+        // Find the most recent item and set its date as the last reset date
+        if (parsedTodos.length > 0) {
+          const mostRecentDate = parsedTodos[0].date; // Assuming the date is in the format "MMM D"
+          setLastResetDate(mostRecentDate);
+
+          // Check if last reset date's month was last month
+          const lastResetDateMoment = moment(mostRecentDate, "MMM D");
+          const currentMonthStart = moment().startOf('month');
+          
+          if (lastResetDateMoment.isBefore(currentMonthStart)) {
+            // Reset totalMoney on the first day of the current month
+            setTotalMoney(0);
+          }
+        } else {
+          // If there are no stored todos, set lastResetDate to the current date
+          setLastResetDate(moment().format("MMM D"));
         }
-      } catch (error) {
-        console.error('Error loading spentmoni:', error);
+      } else {
+        // If there are no stored todos, set lastResetDate to the current date
+        setLastResetDate(moment().format("MMM D"));
       }
-    };
+    } catch (error) {
+      console.error('Error loading spentmoni:', error);
+    }
+  };
 
-    loadTodos();
-  }, []);
+  loadTodos();
+}, []);
 
   const saveTodos = async (spentmoni) => {
     try {
@@ -80,7 +102,6 @@ function SpentMoneyUI({ onPressBack }){
     }
   };
   
-  const [lastResetDate, setLastResetDate] = useState(moment().format("YYYY-MM-DD"));
 
 
   function addToDoHandler(enteredToDoText, enteredMoney, enteredRecepient) {
@@ -89,7 +110,7 @@ function SpentMoneyUI({ onPressBack }){
       Alert.alert(
           'invalid number', 
           'money is null or has special char',
-          [{text:'sorry', style:'destructive'}]
+          [{text:'okay', style:'destructive'}]
       )
       return;
     }

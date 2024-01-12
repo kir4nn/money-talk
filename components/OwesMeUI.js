@@ -86,11 +86,11 @@ function OwesMeUI({ onPressBack }){
       Alert.alert(
           'invalid number', 
           'money is null or has special char',
-          [{text:'sorry', style:'destructive'}]
+          [{text:'okay', style:'destructive'}]
       )
       return;
     }
-    if(isNaN(enteredToDoText)||isNullOrEmpty(enteredToDoText)){
+    if(isNullOrEmpty(enteredToDoText)){
       Alert.alert(
           'no description', 
           'please add a description',
