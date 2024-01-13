@@ -51,48 +51,68 @@ function SpentMoneyUI({ onPressBack }){
   
   const [lastResetDate, setLastResetDate] = useState('');
 
-useEffect(() => {
-  const loadTodos = async () => {
-    try {
-      const storedTodos = await AsyncStorage.getItem('spentmoni');
-      if (storedTodos) {
-        const parsedTodos = JSON.parse(storedTodos);
-        setToDoTexts(parsedTodos);
-
-        const initialTotal = parsedTodos.reduce((total, todo) => {
-          const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
-          return total + money;
-        }, 0);
-        setTotalMoney(initialTotal);
-
-        // Find the most recent item and set its date as the last reset date
-        if (parsedTodos.length > 0) {
-          const mostRecentDate = parsedTodos[0].date; // Assuming the date is in the format "MMM D"
-          setLastResetDate(mostRecentDate);
-
-          // Check if last reset date's month was last month
-          const lastResetDateMoment = moment(mostRecentDate, "MMM D");
-          const currentMonthStart = moment().startOf('month');
-          
-          if (lastResetDateMoment.isBefore(currentMonthStart)) {
-            // Reset totalMoney on the first day of the current month
-            setTotalMoney(0);
+  useEffect(() => {
+    const loadTodos = async () => {
+      try {
+        const storedTodos = await AsyncStorage.getItem('spentmoni');
+        if (storedTodos) {
+          const parsedTodos = JSON.parse(storedTodos);
+  
+          // Create an object to store the total amount for each month
+          const monthlyTotalMap = {};
+  
+          // Iterate through all stored todos
+          parsedTodos.forEach((todo) => {
+            const todoDateMoment = moment(todo.date, 'MMM D');
+            const monthKey = todoDateMoment.format('YYYY-MM'); // Use year and month as a key
+  
+            // Update the total for the corresponding month
+            if (!monthlyTotalMap[monthKey]) {
+              monthlyTotalMap[monthKey] = 0;
+            }
+  
+            const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+            monthlyTotalMap[monthKey] += money;
+          });
+  
+          // Now, you have a map with total amounts for each month
+          console.log('Monthly Total Map:', monthlyTotalMap);
+  
+          // Filter items from the current month
+          const currentMonthKey = moment().format('YYYY-MM');
+          const currentMonthTodos = parsedTodos.filter((todo) => {
+            const todoDateMoment = moment(todo.date, 'MMM D');
+            return todoDateMoment.isSame(moment(), 'month');
+          });
+  
+          setToDoTexts(currentMonthTodos);
+  
+          const initialTotal = currentMonthTodos.reduce((total, todo) => {
+            const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+            return total + money;
+          }, 0);
+  
+          setTotalMoney(initialTotal);
+  
+          // Find the most recent item and set its date as the last reset date
+          if (currentMonthTodos.length > 0) {
+            const mostRecentDate = currentMonthTodos[0].date; // Assuming the date is in the format "MMM D"
+            setLastResetDate(mostRecentDate);
+          } else {
+            // If there are no stored todos for the current month, set lastResetDate to the current date
+            setLastResetDate(moment().format('MMM D'));
           }
         } else {
           // If there are no stored todos, set lastResetDate to the current date
-          setLastResetDate(moment().format("MMM D"));
+          setLastResetDate(moment().format('MMM D'));
         }
-      } else {
-        // If there are no stored todos, set lastResetDate to the current date
-        setLastResetDate(moment().format("MMM D"));
+      } catch (error) {
+        console.error('Error loading spentmoni:', error);
       }
-    } catch (error) {
-      console.error('Error loading spentmoni:', error);
-    }
-  };
-
-  loadTodos();
-}, []);
+    };
+  
+    loadTodos();
+  }, []);
 
   const saveTodos = async (spentmoni) => {
     try {
