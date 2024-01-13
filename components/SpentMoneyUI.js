@@ -118,11 +118,6 @@ useEffect(() => {
     if (enteredMoney && enteredRecepient !== '') {
       const money = parseInt(enteredMoney, 10);
       const currentDate = moment().format("MMM D");
-      
-      if (!moment().isSame(moment(lastResetDate), 'month')) {
-        setTotalMoney(0);
-        setLastResetDate(moment().format("YYYY-MM-DD"));
-      }
 
       const newToDo = {
         text: `₹${enteredMoney}: ${enteredRecepient}, ${enteredToDoText}`,
