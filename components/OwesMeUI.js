@@ -14,38 +14,13 @@ import ToDoItem from './ToDoItem';
 import ToDoInput from './ToDoInput';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SecondaryButton from './SecondaryButton';
+import SpentInput from './SpentInput';
 
-
-function OwesMeUI({ onPressBack }){
+function OwesMeUI({}){
   const [splashIsVisible, setSplashIsVisible] = useState(true);
   const [todoTexts, setToDoTexts] = useState([]);
   const [totalMoney, setTotalMoney] = useState(0);
-  
-  function handlePressBack() {
-    if (onPressBack) {
-      onPressBack();
-    }
-  }
 
-
-  const [fontsLoaded] = useFonts({
-    'CormorantGaramond-Light': require('../assets/fonts/CormorantGaramond-Light.ttf')
-  });
-
-  useEffect(() => {
-    const loadResources = async () => {
-      await SplashScreen.preventAutoHideAsync();
-
-      // Load fonts and other resources
-      if (fontsLoaded) {
-        setSplashIsVisible(false);
-        await SplashScreen.hideAsync();
-      }
-    };
-
-    loadResources();
-  }, [fontsLoaded]);
 
   useEffect(() => {
     // Load stored todos from AsyncStorage when the component mounts
@@ -88,6 +63,12 @@ function OwesMeUI({ onPressBack }){
           'money is null or has special char',
           [{text:'okay', style:'destructive'}]
       )
+      return;
+    }
+    if (!enteredRecepient) {
+      Alert.alert('Invalid recepient', 'Choose a recepient', [
+        { text: 'Okay', style: 'destructive' },
+      ]);
       return;
     }
     if(isNullOrEmpty(enteredToDoText)){
@@ -133,17 +114,13 @@ function OwesMeUI({ onPressBack }){
 
   const day = moment().format('dddd').toLowerCase();
 
-  if (splashIsVisible) {
-    return <View style={styles.splashScreen} />;
-  }
-
   return (
     <View style={styles.appContainer}>
       <View>
         <Text style={styles.dateContainer}>{day}.</Text>
       </View>
 
-      <ToDoInput onAddToDo={addToDoHandler} />
+      <SpentInput onAddToDo={addToDoHandler} />
 
       <View style={styles.displayContainer}>
         <Text style={styles.todayColor}>
@@ -160,10 +137,6 @@ function OwesMeUI({ onPressBack }){
             />
           )}
         />
-        <View style={{alignItems:'center', flexDirection:'row', marginHorizontal:100}}>
-          <SecondaryButton onPress={handlePressBack} style={{padding:5}}>back</SecondaryButton>
-        </View>
-        
         <View style={{borderBottomWidth:1, borderBottomColor:'#ffffff', marginHorizontal:40}}></View>
         <View style={{marginHorizontal:40, marginBottom:20}}>
         <Text style={styles.totalColor}>

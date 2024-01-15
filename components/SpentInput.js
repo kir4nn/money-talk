@@ -1,6 +1,7 @@
 import React, { 
     useState,
-    useEffect
+    useEffect,
+    useRef
   } from "react";
   import { 
     StyleSheet, 
@@ -20,11 +21,17 @@ import React, {
     { label: 'others', value: 'others' },
   ];
   
-  const DropdownComponent = ({ onSelectRecipient}) => {
+  const DropdownComponent = ({ onSelectRecipient, resetDropdownRef}) => {
     const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
   
-  
+    useEffect(() => {
+      // Use the ref to reset the value in DropdownComponent
+      if (resetDropdownRef.current) {
+        setValue(null);
+      }
+    }, [resetDropdownRef]);
+
     return (
       <View style={styles.dropdownContainer}>
         <Dropdown
@@ -58,8 +65,11 @@ import React, {
   function SpentInput(props) {
     const [enteredToDoText, setEnteredToDoText] = useState("");
     const [enteredMoney, setEnteredMoney] = useState("");
-    const [selectedRecipient, setSelectedRecipient] = useState("");
+    const [selectedRecipient, setSelectedRecipient] = useState(null);
     const [totalMoney, setTotalMoney]=useState(0);
+
+    const resetDropdownRef = useRef(null);
+    const [dropdownKey, setDropdownKey] = useState(0);
   
     const [fontsLoaded] = useFonts({
       'CormorantGaramond-Light': require('../assets/fonts/CormorantGaramond-Light.ttf')
@@ -80,6 +90,8 @@ import React, {
       props.onAddToDo(enteredToDoText, enteredMoney, selectedRecipient);
       setEnteredToDoText('');
       setEnteredMoney('');
+      setSelectedRecipient(null);
+      setDropdownKey((prevKey) => prevKey + 1); // Increment the key
     }
   
     useEffect(() => {
@@ -106,6 +118,8 @@ import React, {
   
           <DropdownComponent 
             onSelectRecipient={setSelectedRecipient} 
+            resetDropdownRef={resetDropdownRef}
+            key={dropdownKey} // Add this line
             />
   
           <TextInput

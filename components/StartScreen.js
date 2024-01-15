@@ -1,32 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
-  Text,
   View,
-  FlatList,
-  ImageBackground,
+  Image,
+  Text
 } from 'react-native';
-import moment from 'moment';
-import { useFonts } from "expo-font";
-import * as SplashScreen from 'expo-splash-screen';
 import PrimaryButton from './PrimaryButton';
+import { Ionicons, FontAwesome} from '@expo/vector-icons';
 
-function StartScreen({onPressButton, onPressButton1}){
+function StartScreen({navigation}){
 
-    function onPressButtonHandler(){
-        onPressButton(true);
-        onPressButton1(false);
+    function onPressSpent(){
+        navigation.navigate('SpentMoneyScreen')
     }
-    function onPressButtonHandler1(){
-        onPressButton1(true);
-        onPressButton(false);
+    
+    function onPressGave(){
+        navigation.navigate('GaveMoneyScreen')
     }
+
+    function onPressHistory(){
+        navigation.navigate('HistoryScreen')
+    }
+
 
     return(
         <View style={styles.inputContainer}>
+            <View style={styles.imgContainer}>
+                <Image source={require('../assets/images/icon.png')} style={{width:180, height:180}}/>
+                <Text style={styles.titleText}>money talk</Text>
+            </View>
             <View style={styles.buttonsContainer}>
-                <PrimaryButton onPress={onPressButtonHandler1}>spent money</PrimaryButton>  
-                <PrimaryButton onPress={onPressButtonHandler}>gave money</PrimaryButton>
+                <PrimaryButton onPress={onPressSpent}>spent money {''}
+                  <Ionicons name="fast-food-outline" size={24} color="white" />
+                </PrimaryButton>  
+                <PrimaryButton onPress={onPressGave}>gave money{' '}
+                    <FontAwesome name="arrows-h" size={24} color="white" />
+                </PrimaryButton>
+                <PrimaryButton onPress={onPressHistory}>history{' '}
+                    <FontAwesome name="history" size={24} color="white" />
+                </PrimaryButton>
             </View>
         </View>
     );
@@ -38,8 +50,18 @@ const styles=StyleSheet.create({
     inputContainer:{
         flex:1,
         alignItems:'center',
+        backgroundColor: 'black',
+    },
+    imgContainer:{
+        marginTop:'5%',
+        alignItems:'center'
+    },
+    titleText:{
+        color:'white',
+        fontFamily:'CormorantGaramond-Bold',
+        fontSize:32,   
     },
     buttonsContainer:{
-        marginTop:'70%',
-        },
+        marginTop:'5%'
+    }
 })

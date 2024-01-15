@@ -1,54 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  Alert
-} from 'react-native';
+import { StyleSheet, Text, View, FlatList, Alert } from 'react-native';
 import moment from 'moment';
 import { useFonts } from "expo-font";
 import * as SplashScreen from 'expo-splash-screen';
-
-import ToDoItem from './ToDoItem';
-import ToDoInput from './ToDoInput';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SecondaryButton from './SecondaryButton';
 import SpentInput from './SpentInput';
 import SpentItem from './SpentItem';
 
-
-function SpentMoneyUI({ onPressBack }){
-  const [splashIsVisible, setSplashIsVisible] = useState(true);
+function SpentMoneyUI({}) {
   const [todoTexts, setToDoTexts] = useState([]);
   const [totalMoney, setTotalMoney] = useState(0);
-  
-  function handlePressBack() {
-    if (onPressBack) {
-      onPressBack();
-    }
-  }
-
-
-  const [fontsLoaded] = useFonts({
-    'CormorantGaramond-Light': require('../assets/fonts/CormorantGaramond-Light.ttf')
-  });
-
-  useEffect(() => {
-    const loadResources = async () => {
-      await SplashScreen.preventAutoHideAsync();
-
-      // Load fonts and other resources
-      if (fontsLoaded) {
-        setSplashIsVisible(false);
-        await SplashScreen.hideAsync();
-      }
-    };
-
-    loadResources();
-  }, [fontsLoaded]);
-  
+  const [totalLifetimeMoney, setTotalLifetimeMoney] = useState(0);
   const [lastResetDate, setLastResetDate] = useState('');
 
   useEffect(() => {
@@ -57,60 +19,67 @@ function SpentMoneyUI({ onPressBack }){
         const storedTodos = await AsyncStorage.getItem('spentmoni');
         if (storedTodos) {
           const parsedTodos = JSON.parse(storedTodos);
-  
+
           // Create an object to store the total amount for each month
           const monthlyTotalMap = {};
-  
+
           // Iterate through all stored todos
           parsedTodos.forEach((todo) => {
             const todoDateMoment = moment(todo.date, 'MMM D');
             const monthKey = todoDateMoment.format('YYYY-MM'); // Use year and month as a key
-  
+
             // Update the total for the corresponding month
             if (!monthlyTotalMap[monthKey]) {
               monthlyTotalMap[monthKey] = 0;
             }
-  
+
             const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
             monthlyTotalMap[monthKey] += money;
           });
-  
+
           // Now, you have a map with total amounts for each month
           console.log('Monthly Total Map:', monthlyTotalMap);
-  
-          // Filter items from the current month
-          const currentMonthKey = moment().format('YYYY-MM');
-          const currentMonthTodos = parsedTodos.filter((todo) => {
-            const todoDateMoment = moment(todo.date, 'MMM D');
-            return todoDateMoment.isSame(moment(), 'month');
-          });
-  
-          setToDoTexts(currentMonthTodos);
-  
-          const initialTotal = currentMonthTodos.reduce((total, todo) => {
+
+          // Calculate the initial lifetime total
+          const initialLifetimeTotal = parsedTodos.reduce((total, todo) => {
             const money = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
             return total + money;
           }, 0);
-  
-          setTotalMoney(initialTotal);
-  
+          setTotalLifetimeMoney(initialLifetimeTotal);
+
           // Find the most recent item and set its date as the last reset date
-          if (currentMonthTodos.length > 0) {
-            const mostRecentDate = currentMonthTodos[0].date; // Assuming the date is in the format "MMM D"
+          if (parsedTodos.length > 0) {
+            const mostRecentDate = parsedTodos[0].date; // Assuming the date is in the format "MMM D"
             setLastResetDate(mostRecentDate);
+
+            // Check if the most recent item is in the current month
+            const isCurrentMonth = moment(mostRecentDate, 'MMM D').isSame(moment(), 'month');
+            if (isCurrentMonth) {
+              // Set totalMoney to the cost of the recent month or 0 if there are no items added this month
+              const currentMonthKey = moment().format('YYYY-MM');
+              setTotalMoney(monthlyTotalMap[currentMonthKey] || 0);
+            } else {
+              // If the most recent item is not in the current month, set totalMoney to 0
+              setTotalMoney(0);
+            }
           } else {
-            // If there are no stored todos for the current month, set lastResetDate to the current date
+            // If there are no stored todos, set lastResetDate to the current date
             setLastResetDate(moment().format('MMM D'));
+            setTotalMoney(0);
           }
+
+          // Set todoTexts after the logic for totalMoney is determined
+          setToDoTexts(parsedTodos);
         } else {
           // If there are no stored todos, set lastResetDate to the current date
           setLastResetDate(moment().format('MMM D'));
+          setTotalMoney(0);
         }
       } catch (error) {
         console.error('Error loading spentmoni:', error);
       }
     };
-  
+
     loadTodos();
   }, []);
 
@@ -121,23 +90,30 @@ function SpentMoneyUI({ onPressBack }){
       console.error('Error saving spentmoni:', error);
     }
   };
-  
-
 
   function addToDoHandler(enteredToDoText, enteredMoney, enteredRecepient) {
-    
-    if(isNaN(enteredMoney)||enteredMoney<=0||enteredMoney.startsWith(".")||enteredMoney.startsWith(",")){
-      Alert.alert(
-          'invalid number', 
-          'money is null or has special char',
-          [{text:'okay', style:'destructive'}]
-      )
+    if (
+      isNaN(enteredMoney) ||
+      enteredMoney <= 0 ||
+      enteredMoney.startsWith('.') ||
+      enteredMoney.startsWith(',')
+    ) {
+      Alert.alert('Invalid number', 'Money is null or has a special character', [
+        { text: 'Okay', style: 'destructive' },
+      ]);
+      return;
+    }
+
+    if (!enteredRecepient) {
+      Alert.alert('Invalid recepient', 'Choose a recepient', [
+        { text: 'Okay', style: 'destructive' },
+      ]);
       return;
     }
 
     if (enteredMoney && enteredRecepient !== '') {
       const money = parseInt(enteredMoney, 10);
-      const currentDate = moment().format("MMM D");
+      const currentDate = moment().format('MMM D');
 
       const newToDo = {
         text: `₹${enteredMoney}: ${enteredRecepient}, ${enteredToDoText}`,
@@ -147,13 +123,18 @@ function SpentMoneyUI({ onPressBack }){
 
       setToDoTexts((currentToDoTexts) => [newToDo, ...currentToDoTexts]);
       saveTodos([newToDo, ...todoTexts]);
+
+      // Update the lifetime total
+      setTotalLifetimeMoney((currentLifetimeTotal) => currentLifetimeTotal + money);
+
+      // Update the total money for all items
       setTotalMoney((currentTotal) => currentTotal + money);
     }
   }
 
   useEffect(() => {
     const resetMonth = () => {
-      setLastResetDate(moment().format("YYYY-MM-DD"));
+      setLastResetDate(moment().format('YYYY-MM-DD'));
     };
 
     const interval = setInterval(resetMonth, 86400000); // Check every day
@@ -166,25 +147,38 @@ function SpentMoneyUI({ onPressBack }){
       const updatedTodos = currentToDoTexts.filter((todo) => todo.id !== id);
       saveTodos(updatedTodos);
   
-      const newTotal =
-        updatedTodos.length === 0
-          ? 0
-          : updatedTodos.reduce((total, todo) => {
-              const todoMoney = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
-              return total + todoMoney;
-            }, 0);
-      setTotalMoney(newTotal);
+      // Update the lifetime total
+      const newLifetimeTotal = updatedTodos.reduce((total, todo) => {
+        const todoMoney = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+        return total + todoMoney;
+      }, 0);
+      setTotalLifetimeMoney(newLifetimeTotal);
+  
+      const currentMonthTodos = updatedTodos.filter((todo) => {
+        const todoDateMoment = moment(todo.date, 'MMM D');
+        return todoDateMoment.isSame(moment(), 'month');
+      });
+  
+      const currentMonthTotal = currentMonthTodos.reduce((total, todo) => {
+        const todoMoney = parseInt(todo.text.split(':')[0].replace('₹', ''), 10);
+        return total + todoMoney;
+      }, 0);
+  
+      setTotalMoney((prevTotal) => {
+        if (currentMonthTotal > 0) {
+          // If there are items in the current month, use the current month total
+          return currentMonthTotal;
+        } else {
+          // If there are no items in the current month, set the monthly total to 0
+          return 0;
+        }
+      });
   
       return updatedTodos;
     });
   }
 
   const day = moment().format('dddd').toLowerCase();
-
-  if (splashIsVisible) {
-    return <View style={styles.splashScreen} />;
-  }
-
   return (
     <View style={styles.appContainer}>
       <View>
@@ -208,15 +202,16 @@ function SpentMoneyUI({ onPressBack }){
             />
           )}
         />
-        <View style={{alignItems:'center', flexDirection:'row', marginHorizontal:100}}>
-          <SecondaryButton onPress={handlePressBack} style={{padding:5}}>back</SecondaryButton>
-        </View>
-        
-        <View style={{borderBottomWidth:1, borderBottomColor:'#ffffff', marginHorizontal:40}}></View>
-        <View style={{marginHorizontal:40, marginBottom:20}}>
-        <Text style={styles.totalColor}>
-          Total(Month): <Text style={styles.totalValueColor}>{totalMoney}</Text>
-        </Text>
+
+        <View style={{marginHorizontal:40, marginBottom:20, alignItems:'center',
+          borderTopWidth:1, borderBottomColor:'#ccccc'}}>
+          <Text style={styles.totalColor}>
+            Month:<Text style={styles.totalValueColor}>{totalMoney}</Text>
+
+            <Text style={styles.totalLifetimeColor}>
+                {'\n'}Lifetime:<Text style={styles.totalValueColor}>{totalLifetimeMoney}</Text>
+            </Text>
+          </Text>
         </View>
       </View>
     </View>
@@ -258,9 +253,16 @@ const styles = StyleSheet.create({
       padding: 10,
       borderBottomWidth: 1,
       borderBottomColor: '#cccccc',
+      borderTopWidth:1,
+      borderTopColor:'#cccccc',
       fontSize:20,
       fontFamily:'CormorantGaramond-Bold',
-      paddingLeft:45
+    },
+    totalLifetimeColor:{
+      color: "white",
+      padding: 10,
+      fontSize:20,
+      fontFamily:'CormorantGaramond-Bold',
     },
     totalValueColor: {
       color: "white",
