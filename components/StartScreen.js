@@ -27,7 +27,7 @@ function StartScreen({navigation}){
         <View style={styles.inputContainer}>
             <View style={styles.imgContainer}>
                 <Image source={require('../assets/images/icon.png')} style={{width:180, height:180}}/>
-                <Text style={styles.titleText}>money talk</Text>
+                <Text style={styles.titleText}>money talk.</Text>
             </View>
             <View style={styles.buttonsContainer}>
                 <PrimaryButton onPress={onPressSpent}>spent money {''}

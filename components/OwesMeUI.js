@@ -7,19 +7,19 @@ import {
   Alert
 } from 'react-native';
 import moment from 'moment';
-import { useFonts } from "expo-font";
-import * as SplashScreen from 'expo-splash-screen';
-
 import ToDoItem from './ToDoItem';
 import ToDoInput from './ToDoInput';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SpentInput from './SpentInput';
+import { useGaveHistory } from './GaveHistoryContext';
 
 function OwesMeUI({}){
   const [splashIsVisible, setSplashIsVisible] = useState(true);
   const [todoTexts, setToDoTexts] = useState([]);
   const [totalMoney, setTotalMoney] = useState(0);
+
+  const [history, setHistory] = useState([]);
+  const { addToHistory } = useGaveHistory();
 
 
   useEffect(() => {
@@ -65,12 +65,7 @@ function OwesMeUI({}){
       )
       return;
     }
-    if (!enteredRecepient) {
-      Alert.alert('Invalid recepient', 'Choose a recepient', [
-        { text: 'Okay', style: 'destructive' },
-      ]);
-      return;
-    }
+    
     if(isNullOrEmpty(enteredToDoText)){
       Alert.alert(
           'no description', 
@@ -91,14 +86,18 @@ function OwesMeUI({}){
       setToDoTexts((currentToDoTexts) => [newToDo, ...currentToDoTexts]);
       saveTodos([newToDo, ...todoTexts]);
       setTotalMoney((currentTotal) => currentTotal + money);
+
+      setHistory((currentHistory) => [...currentHistory, { action: 'add', item: newToDo }]);
+      addToHistory('add', newToDo);
     }
   }
 
   function deleteToDoHandler(id) {
     setToDoTexts((currentToDoTexts) => {
+      const deletedItem = currentToDoTexts.find((todo) => todo.id === id);
       const updatedTodos = currentToDoTexts.filter((todo) => todo.id !== id);
       saveTodos(updatedTodos);
-  
+
       const newTotal =
         updatedTodos.length === 0
           ? 0
@@ -107,7 +106,11 @@ function OwesMeUI({}){
               return total + todoMoney;
             }, 0);
       setTotalMoney(newTotal);
-  
+
+      // Reverse the currentHistory array before updating state
+      setHistory((currentHistory) => [...currentHistory, { action: 'delete', item: deletedItem }].reverse());
+      addToHistory('delete', deletedItem);
+
       return updatedTodos;
     });
   }
@@ -120,7 +123,7 @@ function OwesMeUI({}){
         <Text style={styles.dateContainer}>{day}.</Text>
       </View>
 
-      <SpentInput onAddToDo={addToDoHandler} />
+      <ToDoInput onAddToDo={addToDoHandler} />
 
       <View style={styles.displayContainer}>
         <Text style={styles.todayColor}>

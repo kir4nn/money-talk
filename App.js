@@ -14,6 +14,8 @@ import SpentMoneyUI from './components/SpentMoneyUI';
 import {useFonts} from 'expo-font';
 import AppLoading from 'expo-app-loading';
 import HistoryUI from './components/HistoryUI';
+import { HistoryProvider } from './components/HistoryContext';
+import { GaveHistoryProvider } from './components/GaveHistoryContext';
 
 const Stack=createNativeStackNavigator();
 
@@ -26,21 +28,26 @@ export default function App() {
   if(!fontsLoaded){
     return <AppLoading />;
   }
-  return(
+  return (
     <View style={styles.rootScreen}>
-      <StatusBar style='light'/>
+      <StatusBar style='light' />
       <SafeAreaView style={styles.rootScreen}>
         <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }}/>
-            <Stack.Screen name="SpentMoneyScreen" component={SpentMoneyUI} options={{ headerShown: false }}/>
-            <Stack.Screen name="GaveMoneyScreen" component={OwesMeUI} options={{ headerShown: false }}/>
-            <Stack.Screen name="HistoryScreen" component={HistoryUI} options={{ headerShown: false }}/>
-          </Stack.Navigator>
+          <HistoryProvider>
+            <GaveHistoryProvider>
+              <Stack.Navigator>
+                <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="SpentMoneyScreen" component={SpentMoneyUI} options={{ headerShown: false }} />
+                <Stack.Screen name="GaveMoneyScreen" component={OwesMeUI} options={{ headerShown: false }} />
+                <Stack.Screen name="HistoryScreen" component={HistoryUI} options={{ headerShown: false }} />
+              </Stack.Navigator>
+            </GaveHistoryProvider>
+          </HistoryProvider>
         </NavigationContainer>
       </SafeAreaView>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({

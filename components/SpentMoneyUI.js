@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, Alert } from 'react-native';
 import moment from 'moment';
-import { useFonts } from "expo-font";
-import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SpentInput from './SpentInput';
 import SpentItem from './SpentItem';
+import { useHistory } from './HistoryContext';
 
 function SpentMoneyUI({}) {
   const [todoTexts, setToDoTexts] = useState([]);
   const [totalMoney, setTotalMoney] = useState(0);
   const [totalLifetimeMoney, setTotalLifetimeMoney] = useState(0);
   const [lastResetDate, setLastResetDate] = useState('');
+  const [history, setHistory] = useState([]);
+  const { addToHistory } = useHistory();
 
   useEffect(() => {
     const loadTodos = async () => {
@@ -129,6 +130,9 @@ function SpentMoneyUI({}) {
 
       // Update the total money for all items
       setTotalMoney((currentTotal) => currentTotal + money);
+      
+      setHistory((currentHistory) => [...currentHistory, { action: 'add', item: newToDo }]);
+      addToHistory('add', newToDo);
     }
   }
 
@@ -144,6 +148,7 @@ function SpentMoneyUI({}) {
 
   function deleteToDoHandler(id) {
     setToDoTexts((currentToDoTexts) => {
+      const deletedItem = currentToDoTexts.find((todo) => todo.id === id);
       const updatedTodos = currentToDoTexts.filter((todo) => todo.id !== id);
       saveTodos(updatedTodos);
   
@@ -153,7 +158,10 @@ function SpentMoneyUI({}) {
         return total + todoMoney;
       }, 0);
       setTotalLifetimeMoney(newLifetimeTotal);
-  
+      
+      setHistory((currentHistory) => [...currentHistory, { action: 'delete', item: deletedItem }]);
+      addToHistory('delete', deletedItem);
+      
       const currentMonthTodos = updatedTodos.filter((todo) => {
         const todoDateMoment = moment(todo.date, 'MMM D');
         return todoDateMoment.isSame(moment(), 'month');
