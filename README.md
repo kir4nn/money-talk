@@ -1,3 +1,3 @@
-# who-owes-me
+# money-talks
 a very simple app for keeping track of expenses.
 
